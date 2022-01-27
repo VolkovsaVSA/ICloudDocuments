@@ -3,7 +3,7 @@
 
 import Foundation
 
-struct ICloudDocuments {
+class ICloudDocuments: ObservableObject {
     public init(groupName: String? = nil) {
         self.groupName = groupName
     }

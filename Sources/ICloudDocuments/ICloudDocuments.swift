@@ -3,7 +3,7 @@
 
 import Foundation
 
-class ICloudDocuments: ObservableObject {
+public class ICloudDocuments: ObservableObject {
     public init(groupName: String? = nil) {
         self.groupName = groupName
     }
@@ -21,12 +21,12 @@ class ICloudDocuments: ObservableObject {
     /// "mainHiddenFolder" is a hidden folder in iCloud
     /// 
     /// "iCloudDocumentsFolder" is an open folder in the Documents folder in iCloud
-    enum ICloudFolder: String {
+    public enum ICloudFolder: String {
         case mainHiddenFolder = "Backup"
         case iCloudDocumentsFolder = "Documents"
     }
     
-    enum ICloudError: Error {
+    public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
     }

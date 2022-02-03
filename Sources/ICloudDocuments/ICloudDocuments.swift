@@ -3,7 +3,6 @@
 
 import Foundation
 
-/// Initialize the class object to use the desired functionality.
 public class ICloudDocuments: ObservableObject {
     /// A single class instance initializer. Pass the desired parameters for the container configuration.
     ///

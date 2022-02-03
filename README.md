@@ -13,7 +13,8 @@ Use swift package manager
 
 Usage
 =====================
-0. For using this framework you must processing all necessary step to switch on iCloud Documents in your app.
+0. **For using this framework you must processing all necessary step to switch on iCloud Documents in your app.**
+---------------------------------
 
     * add iCloud Documents in "Signing & Capabilities"
     * add follow code in info.plist

@@ -3,7 +3,10 @@
 
 import Foundation
 
+/// Initialize the class object to use the desired functionality.
 public class ICloudDocuments: ObservableObject {
+    /// A single class instance initializer. Pass the desired parameters for the container configuration.
+    ///
     /// iCloudFolder. Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Buckup".
     ///
     /// groupName. Specify the "groupName" parameter if you are using App Groups.

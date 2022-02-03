@@ -18,17 +18,19 @@ Usage
     * add iCloud Documents in "Signing & Capabilities"
     * add follow code in info.plist
     
-```swift
+    YOUR_CONTAINER_IDENTIFIRE it's your container identifier when you checkmark in iCloud Documents in Signing & Capabilities.
+    
+```xml
     <key>NSUbiquitousContainers</key>
     <dict>
-        <key>**YOUR_CONTAINER_IDENTIFIRE**</key>
+        <key>YOUR_CONTAINER_IDENTIFIRE</key>
         <dict>
             <key>NSUbiquitousContainerIsDocumentScopePublic</key>
             <true/>
             <key>NSUbiquitousContainerSupportedFolderLevels</key>
             <string>Any</string>
             <key>NSUbiquitousContainerName</key>
-            <string>**YOU_APP_NAME**</string>
+            <string>YOU_APP_NAME</string>
         </dict>
     </dict>
 ```

@@ -7,7 +7,7 @@ public class ICloudDocuments: ObservableObject {
     /// iCloudFolder. Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Buckup".
     ///
     /// groupName. Specify the "groupName" parameter if you are using App Groups.
-    public init(iCloudFolder: ICloudFolder, groupName: String? = nil) {
+    public init(groupName: String? = nil, iCloudFolder: ICloudFolder) {
         self.groupName = groupName
         self.iCloudFolder = iCloudFolder
     }

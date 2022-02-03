@@ -14,6 +14,7 @@ Use swift package manager
 Usage
 =====================
 1. Create a class instance
+
 If you not use App groups when skip second parameter.
 ```swift
     let ICD = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder)

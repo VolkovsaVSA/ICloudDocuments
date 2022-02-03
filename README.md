@@ -1,7 +1,7 @@
 # ICloudDocuments
 
 A framework for easier copying of files to iСloud documents
-=====================
+--------------------------
 
 Requirements
 =====================

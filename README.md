@@ -18,12 +18,12 @@ Usage
     * add iCloud Documents in "Signing & Capabilities"
     * add follow code in info.plist
     
-    YOUR_CONTAINER_IDENTIFIRE it's your container identifier when you checkmark in iCloud Documents in Signing & Capabilities.
+    YOUR_CONTAINER_IDENTIFIER it's your container identifier when you checkmark in iCloud Documents in Signing & Capabilities.
     
 ```xml
     <key>NSUbiquitousContainers</key>
     <dict>
-        <key>YOUR_CONTAINER_IDENTIFIRE</key>
+        <key>YOUR_CONTAINER_IDENTIFIER</key>
         <dict>
             <key>NSUbiquitousContainerIsDocumentScopePublic</key>
             <true/>

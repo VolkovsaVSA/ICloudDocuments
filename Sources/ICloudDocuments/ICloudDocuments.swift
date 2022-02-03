@@ -6,9 +6,9 @@ import Foundation
 public class ICloudDocuments: ObservableObject {
     /// A single class instance initializer. Pass the desired parameters for the container configuration.
     ///
-    /// iCloudFolder. Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Buckup".
-    /// 
-    /// groupName. Specify the "groupName" parameter if you are using App Groups.
+    /// **iCloudFolder**. Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Buckup".
+    ///
+    /// **groupName**. Specify the "groupName" parameter if you are using App Groups.
     public init(iCloudFolder: ICloudFolder = .iCloudDocumentsFolder, groupName: String? = nil) {
         self.groupName = groupName
         self.iCloudFolder = iCloudFolder
@@ -24,21 +24,21 @@ public class ICloudDocuments: ObservableObject {
         }
     }
     
-    /// iCloud Folder type
+    /// **iCloud Folder type**
     ///
-    /// "mainHiddenFolder" is a hidden folder in iCloud
+    /// **"mainHiddenFolder"** is a hidden folder in iCloud
     ///
-    /// "iCloudDocumentsFolder" is an open folder in the Documents folder in iCloud
+    /// **"iCloudDocumentsFolder"** is an open folder in the Documents folder in iCloud
     public enum ICloudFolder: String {
         case mainHiddenFolder = "Backup"
         case iCloudDocumentsFolder = "Documents"
     }
     
-    /// iCloud erros
+    /// **iCloud erros**
     ///
-    /// "iCloudAccessDenied" - no access to iCloud
+    /// **"iCloudAccessDenied"** - no access to iCloud
     /// 
-    /// "noFilesInContainer" - no files
+    /// **"noFilesInContainer"** - no files
     public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
@@ -67,7 +67,7 @@ public class ICloudDocuments: ObservableObject {
     }
     /// The function saves files in the iCloud container. The closure returns a list of saved files.
     ///
-    /// Pass an array of file paths to save to the "localFilePaths" parameter.
+    /// Pass an array of file paths to save to the **"localFilePaths"** parameter.
     public func saveFilesToICloudDOcuments(localFilePaths: [String], completion: @escaping (Result<[String], Error>)->Void) {
         
         var files = [String]()
@@ -99,7 +99,7 @@ public class ICloudDocuments: ObservableObject {
     }
     /// Copying files from the iCloud container to a local folder on the device.
     ///
-    /// In the "localFolder" parameter, pass the URL of the local folder to save files.
+    /// In the **"localFolder"** parameter, pass the URL of the local folder to save files.
     public func downloadAllFilesFromIcloud(localFolder: URL, completion: @escaping (Error?)->Void) {
         if let container = containerUrl {
             

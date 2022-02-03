@@ -13,6 +13,26 @@ Use swift package manager
 
 Usage
 =====================
+0. For using this framework you must processing all necessary step to switch on iCloud Documents in your app.
+
+    * add iCloud Documents in "Signing & Capabilities"
+    * add follow code in info.plist
+    
+```swift
+    <key>NSUbiquitousContainers</key>
+    <dict>
+        <key>**YOUR_CONTAINER_IDENTIFIRE**</key>
+        <dict>
+            <key>NSUbiquitousContainerIsDocumentScopePublic</key>
+            <true/>
+            <key>NSUbiquitousContainerSupportedFolderLevels</key>
+            <string>Any</string>
+            <key>NSUbiquitousContainerName</key>
+            <string>**YOU_APP_NAME**</string>
+        </dict>
+    </dict>
+```
+
 1. Create a class instance
 
 If you not use App groups when skip second parameter.

@@ -26,7 +26,7 @@ If you use App groups therefore passed App groups name in second parameter.
 
 ```swift
     ICD.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path]) { result in
-        ... //processing result
+        ... //result processing
     }
 ```
 
@@ -37,7 +37,7 @@ If you use App groups therefore passed App groups name in second parameter.
         if let downloadError = error {
             print(downloadError.localizedDescription)
         } else {
-            ... //processing result
+            ... //result processing
         }
     }
 ```

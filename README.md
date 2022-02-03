@@ -11,7 +11,7 @@ Installation
 Use swift package manager
 <https://github.com/VolkovsaVSA/ICloudDocuments>
 
-Usegade
+Usage
 =====================
 
 

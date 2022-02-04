@@ -1,5 +1,7 @@
 # ICloudDocuments
 
+/appveyor/build/:user/:repo
+
 A framework for easier copying of files to iСloud documents
 
 Requirements

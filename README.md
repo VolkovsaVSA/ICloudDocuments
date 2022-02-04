@@ -1,6 +1,6 @@
 # ICloudDocuments
 
-/appveyor/build/:user/:repo
+/appveyor/build/:VolkovsaVSA/:
 
 A framework for easier copying of files to iСloud documents
 

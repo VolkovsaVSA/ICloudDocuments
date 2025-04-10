@@ -4,7 +4,7 @@ A framework for easier copying of files to iСloud documents
 
 Requirements
 =====================
-iOS v13, macOS v10, tvOS v13 minimum
+iOS v15, macOS v12, tvOS v15 minimum
 
 Installation
 =====================
@@ -40,29 +40,69 @@ Usage
 
 If you not use App groups when skip second parameter.
 ```swift
-    let ICD = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder)
+    let icd = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder)
 ```
 If you use App groups therefore passed App groups name in second parameter.
 ```swift
-    let ICD = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder, groupName: "group.Name")
+    let icd = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder, groupName: "group.Name")
 ```
 2. For upload files to iCloud Documents use "saveFilesToICloudDocuments" function.
 
 ```swift
-    ICD.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path]) { result in
+    // Using completion handler
+    icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path]) { result in
         ... //result processing
+    }
+    
+    // Using async/await
+    do {
+        let savedFiles = try await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path])
+        // Process saved files
+    } catch {
+        // Handle error
     }
 ```
 
 3. For download files from iCloud Documents use "downloadAllFilesFromIcloud" function.
 
 ```swift
-    ICD.downloadAllFilesFromIcloud(localFolder: documentDirectory) { error in
-        if let downloadError = error {
-            print(downloadError.localizedDescription)
+    // Using completion handler
+    icd.downloadAllFilesFromIcloud(localFolder: documentDirectory) { error in
+        if let error {
+            print(error.localizedDescription)
         } else {
             ... //result processing
         }
+    }
+    
+    // Using async/await
+    do {
+        try await icd.downloadAllFilesFromIcloud(localFolder: documentDirectory)
+        // Files downloaded successfully
+    } catch {
+        print(error.localizedDescription)
+    }
+```
+
+4. For checking files in iCloud use "checkFilesInIcloud" function.
+
+```swift
+    // Using completion handler
+    icd.checkFilesInIcloud { result in
+        switch result {
+        case .success(let files):
+            // Process files
+        case .failure(let error):
+            print(error.localizedDescription)
+        }
+    }
+    
+    // Using async/await
+    do {
+        let files = try await icd.checkFilesInIcloud()
+        // Process files
+    } catch {
+        print(error.localizedDescription)
     }
 ```
 

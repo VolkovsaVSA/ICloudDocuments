@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -24,8 +24,7 @@ let package = Package(
         .target(
             name: "ICloudDocuments",
             dependencies: []),
-//        .testTarget(
-//            name: "ICloudDocumentsTests",
-//            dependencies: ["ICloudDocuments"]),
     ]
 )
+
+let version = "1.1.0"

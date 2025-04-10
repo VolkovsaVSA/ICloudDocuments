@@ -6,10 +6,13 @@ import Foundation
 public class ICloudDocuments: ObservableObject {
     /// A single class instance initializer. Pass the desired parameters for the container configuration.
     ///
-    /// **iCloudFolder** - Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Buckup".
+    /// **iCloudFolder** - Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Backup".
     ///
     /// **groupName** - Specify the "groupName" parameter if you are using App Groups.
-    public init(iCloudFolder: ICloudFolder = .iCloudDocumentsFolder, groupName: String? = nil) {
+    public init(
+        iCloudFolder: ICloudFolder = .iCloudDocumentsFolder,
+        groupName: String? = nil
+    ) {
         self.groupName = groupName
         self.iCloudFolder = iCloudFolder
     }
@@ -18,9 +21,15 @@ public class ICloudDocuments: ObservableObject {
 
     private var containerUrl: URL? {
         if let groupNameUnwrap = groupName {
-            return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupNameUnwrap)?.appendingPathComponent(iCloudFolder.rawValue)
+            FileManager
+                .default
+                .containerURL(forSecurityApplicationGroupIdentifier: groupNameUnwrap)?
+                .appendingPathComponent(iCloudFolder.rawValue)
         } else {
-            return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent(iCloudFolder.rawValue)
+            FileManager
+                .default
+                .url(forUbiquityContainerIdentifier: nil)?
+                .appendingPathComponent(iCloudFolder.rawValue)
         }
     }
     
@@ -46,9 +55,13 @@ public class ICloudDocuments: ObservableObject {
     
     //public functions
     /// The function checks for the presence of files in the iCloud container. The closure returns a list of files.
-    public func checkFilesInIcloud(completion: @escaping (Result<[String], Error>)->Void) {
+    public func checkFilesInIcloud(completion: @escaping (Result<[String], Error>) -> Void) {
         if let container = containerUrl {
-            if let containerFiles = try? FileManager().contentsOfDirectory(at: container, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) {
+            if let containerFiles = try? FileManager().contentsOfDirectory(
+                at: container,
+                includingPropertiesForKeys: nil,
+                options: .skipsHiddenFiles
+            ) {
                 if containerFiles.isEmpty {
                     completion(.failure(ICloudError.noFilesInContainer))
                 } else {
@@ -65,11 +78,14 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
+    
     /// The function saves files in the iCloud container. The closure returns a list of saved files.
     ///
     /// Pass an array of file paths to save to the **localFilePaths** parameter.
-    public func saveFilesToICloudDocuments(localFilePaths: [String], completion: @escaping (Result<[String], Error>)->Void) {
-        
+    public func saveFilesToICloudDocuments(
+        localFilePaths: [String],
+        completion: @escaping (Result<[String], Error>) -> Void
+    ) {
         var files = [String]()
         localFilePaths.forEach { filePath in
             if let fileName = filePath.components(separatedBy: "/").last {
@@ -88,7 +104,7 @@ public class ICloudDocuments: ObservableObject {
         
     }
     /// Files in the iCloud container may be in an undownloaded state, so before copying from the container, you must start downloading files to the container.
-    public func startDownloadFiles(completion: @escaping(Error?)->Void) {
+    private func startDownloadFiles(completion: @escaping(Error?) -> Void) {
         if let container = containerUrl {
             do {
                 try FileManager.default.startDownloadingUbiquitousItem(at: container)
@@ -100,7 +116,7 @@ public class ICloudDocuments: ObservableObject {
     /// Copying files from the iCloud container to a local folder on the device.
     ///
     /// In the **localFolder** parameter, pass the URL of the local folder to save files.
-    public func downloadAllFilesFromIcloud(localFolder: URL, completion: @escaping (Error?)->Void) {
+    public func downloadAllFilesFromIcloud(localFolder: URL, completion: @escaping (Error?) -> Void) {
         if let container = containerUrl {
             
             startDownloadFiles { downloadError in
@@ -124,8 +140,10 @@ public class ICloudDocuments: ObservableObject {
                                 }
                             }
                             do {
-                                try FileManager.default.copyItem(atPath: containerFileUrl.path,
-                                                                 toPath: localFolder.appendingPathComponent(fileName).path)
+                                try FileManager.default.copyItem(
+                                    atPath: containerFileUrl.path,
+                                    toPath: localFolder.appendingPathComponent(fileName).path
+                                )
                                 print("copy file: \(fileName)")
                             } catch {
                                 completion(error)
@@ -146,13 +164,15 @@ public class ICloudDocuments: ObservableObject {
     
     //internal functions
     private func urlFileToCopy(fileName: String) -> URL? {
-        return containerUrl?.appendingPathComponent(fileName)
+        containerUrl?.appendingPathComponent(fileName)
     }
     private func createDirectoryInICloud() throws {
         if let url = containerUrl {
             if !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
                 do {
-                    try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+                    try FileManager
+                        .default
+                        .createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
                 } catch let directoryError {
                     print(directoryError, #function, #line)
                     throw directoryError
@@ -185,7 +205,7 @@ public class ICloudDocuments: ObservableObject {
             try FileManager.default.copyItem(atPath: localPath, toPath: urlFileName.path)
             print("file \"\(fileName)\" copy to \(urlFileName.path) is ok")
         } catch {
-            print("error copy file '\(fileName)' to icloud - " + error.localizedDescription)
+            print("error copy file '\(fileName)' to iCloud - " + error.localizedDescription)
             throw error
         }
         
@@ -200,15 +220,71 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
+
+    // MARK: - Async Methods
+    
+    /// The function checks for the presence of files in the iCloud container. Returns a list of files.
+    public func checkFilesInIcloud() async throws -> [String] {
+        try await withCheckedThrowingContinuation { continuation in
+            checkFilesInIcloud { result in
+                switch result {
+                case .success(let files): continuation.resume(returning: files)
+                case .failure(let error): continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    /// The function saves files in the iCloud container. Returns a list of saved files.
+    ///
+    /// Pass an array of file paths to save to the **localFilePaths** parameter.
+    public func saveFilesToICloudDocuments(localFilePaths: [String]) async throws -> [String] {
+        try await withCheckedThrowingContinuation { continuation in
+            saveFilesToICloudDocuments(localFilePaths: localFilePaths) { result in
+                switch result {
+                case .success(let files): continuation.resume(returning: files)
+                case .failure(let error): continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+//    /// Files in the iCloud container may be in an undownloaded state, so before copying from the container, you must start downloading files to the container.
+//    public func startDownloadFiles() async throws {
+//        return try await withCheckedThrowingContinuation { continuation in
+//            startDownloadFiles { error in
+//                if let error {
+//                    continuation.resume(throwing: error)
+//                } else {
+//                    continuation.resume()
+//                }
+//            }
+//        }
+//    }
+    
+    /// Copying files from the iCloud container to a local folder on the device.
+    ///
+    /// In the **localFolder** parameter, pass the URL of the local folder to save files.
+    public func downloadAllFilesFromIcloud(localFolder: URL) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            downloadAllFilesFromIcloud(localFolder: localFolder) { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
 }
 
 extension ICloudDocuments.ICloudError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .iCloudAccessDenied:
-            return NSLocalizedString("Access denied to iCloud. Please sign into your icloud account in to iphone. Check internet connection.", comment: "error description")
+            NSLocalizedString("Access denied to iCloud. Please sign into your iCloud account in to iPhone. Check internet connection.", comment: "error description")
         case .noFilesInContainer:
-            return NSLocalizedString("No files in iCloud", comment: "error description")
+            NSLocalizedString("No files in iCloud", comment: "error description")
         }
     }
 }

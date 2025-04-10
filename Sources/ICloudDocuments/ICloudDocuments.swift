@@ -103,6 +103,7 @@ public class ICloudDocuments: ObservableObject {
         }
         
     }
+    
     /// Files in the iCloud container may be in an undownloaded state, so before copying from the container, you must start downloading files to the container.
     private func startDownloadFiles(completion: @escaping(Error?) -> Void) {
         if let container = containerUrl {
@@ -113,6 +114,7 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
+    
     /// Copying files from the iCloud container to a local folder on the device.
     ///
     /// In the **localFolder** parameter, pass the URL of the local folder to save files.
@@ -248,19 +250,6 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
-    
-//    /// Files in the iCloud container may be in an undownloaded state, so before copying from the container, you must start downloading files to the container.
-//    public func startDownloadFiles() async throws {
-//        return try await withCheckedThrowingContinuation { continuation in
-//            startDownloadFiles { error in
-//                if let error {
-//                    continuation.resume(throwing: error)
-//                } else {
-//                    continuation.resume()
-//                }
-//            }
-//        }
-//    }
     
     /// Copying files from the iCloud container to a local folder on the device.
     ///

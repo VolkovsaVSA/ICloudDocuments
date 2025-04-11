@@ -50,16 +50,30 @@ If you use App groups therefore passed App groups name in second parameter.
 
 ```swift
     // Using completion handler
-    icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path]) { result in
-        ... //result processing
+    icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path]) { result in
+        switch result {
+        case .success(let files):
+            // Process saved files
+        case .failure(let error):
+            print(error.localizedDescription)
+        }
     }
     
-    // Using async/await
+    // Using async/await with throws
     do {
-        let savedFiles = try await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path, fileUrl2.path])
+        let savedFiles = try await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path])
         // Process saved files
     } catch {
-        // Handle error
+        print(error.localizedDescription)
+    }
+    
+    // Using async/await with Result
+    let savedFilesResult = await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path])
+    switch savedFilesResult {
+    case .success(let files):
+        // Process saved files
+    case .failure(let error):
+        print(error.localizedDescription)
     }
 ```
 
@@ -71,15 +85,24 @@ If you use App groups therefore passed App groups name in second parameter.
         if let error {
             print(error.localizedDescription)
         } else {
-            ... //result processing
+            // Files downloaded successfully
         }
     }
     
-    // Using async/await
+    // Using async/await with throws
     do {
         try await icd.downloadAllFilesFromIcloud(localFolder: documentDirectory)
         // Files downloaded successfully
     } catch {
+        print(error.localizedDescription)
+    }
+    
+    // Using async/await with Result
+    let downloadResult = await icd.downloadAllFilesFromIcloud(localFolder: documentDirectory)
+    switch downloadResult {
+    case .success:
+        // Files downloaded successfully
+    case .failure(let error):
         print(error.localizedDescription)
     }
 ```
@@ -97,14 +120,28 @@ If you use App groups therefore passed App groups name in second parameter.
         }
     }
     
-    // Using async/await
+    // Using async/await with throws
     do {
         let files = try await icd.checkFilesInIcloud()
         // Process files
     } catch {
         print(error.localizedDescription)
     }
+    
+    // Using async/await with Result
+    let filesResult = await icd.checkFilesInIcloud()
+    switch filesResult {
+    case .success(let files):
+        // Process files
+    case .failure(let error):
+        print(error.localizedDescription)
+    }
 ```
+
+Note: Each method is available in three versions:
+1. With completion handler (traditional asynchronous approach)
+2. With async/await and throws (modern Swift approach)
+3. With async/await and Result (alternative approach for more explicit error handling)
 
 Enjoy
 =====================
@@ -112,11 +149,4 @@ Enjoy
 
 License
 =====================
-MIT License
-Copyright [2022] [Sergei Volkov]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

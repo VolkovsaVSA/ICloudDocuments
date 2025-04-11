@@ -225,14 +225,11 @@ public class ICloudDocuments: ObservableObject {
 
     // MARK: - Async Methods
     
-    /// The function checks for the presence of files in the iCloud container. Returns a list of files.
-    public func checkFilesInIcloud() async throws -> [String] {
-        try await withCheckedThrowingContinuation { continuation in
+    /// The function checks for the presence of files in the iCloud container. Returns Result with a list of files or error.
+    public func checkFilesInIcloud() async -> Result<[String], Error> {
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<[String], Error>, Never>) in
             checkFilesInIcloud { result in
-                switch result {
-                case .success(let files): continuation.resume(returning: files)
-                case .failure(let error): continuation.resume(throwing: error)
-                }
+                continuation.resume(returning: result)
             }
         }
     }
@@ -241,7 +238,7 @@ public class ICloudDocuments: ObservableObject {
     ///
     /// Pass an array of file paths to save to the **localFilePaths** parameter.
     public func saveFilesToICloudDocuments(localFilePaths: [String]) async throws -> [String] {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[String], Error>) in
             saveFilesToICloudDocuments(localFilePaths: localFilePaths) { result in
                 switch result {
                 case .success(let files): continuation.resume(returning: files)
@@ -251,16 +248,43 @@ public class ICloudDocuments: ObservableObject {
         }
     }
     
+    /// The function saves files in the iCloud container. Returns Result with a list of saved files or error.
+    ///
+    /// Pass an array of file paths to save to the **localFilePaths** parameter.
+    public func saveFilesToICloudDocuments(localFilePaths: [String]) async -> Result<[String], Error> {
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<[String], Error>, Never>) in
+            saveFilesToICloudDocuments(localFilePaths: localFilePaths) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
+    
     /// Copying files from the iCloud container to a local folder on the device.
     ///
     /// In the **localFolder** parameter, pass the URL of the local folder to save files.
     public func downloadAllFilesFromIcloud(localFolder: URL) async throws {
-        return try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             downloadAllFilesFromIcloud(localFolder: localFolder) { error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {
                     continuation.resume()
+                }
+            }
+        }
+    }
+    
+    /// Copying files from the iCloud container to a local folder on the device.
+    /// Returns Result with void or error.
+    ///
+    /// In the **localFolder** parameter, pass the URL of the local folder to save files.
+    public func downloadAllFilesFromIcloud(localFolder: URL) async -> Result<Void, Error> {
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<Void, Error>, Never>) in
+            downloadAllFilesFromIcloud(localFolder: localFolder) { error in
+                if let error {
+                    continuation.resume(returning: .failure(error))
+                } else {
+                    continuation.resume(returning: .success(()))
                 }
             }
         }

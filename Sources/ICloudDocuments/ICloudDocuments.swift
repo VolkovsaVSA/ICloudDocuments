@@ -48,9 +48,12 @@ public class ICloudDocuments: ObservableObject {
     /// **iCloudAccessDenied** - no access to iCloud
     /// 
     /// **noFilesInContainer** - no files
+    ///
+    /// **fileNotFound** - specified file not found in iCloud
     public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
+        case fileNotFound
     }
     
     //public functions
@@ -162,6 +165,39 @@ public class ICloudDocuments: ObservableObject {
         } else {
             completion(ICloudError.iCloudAccessDenied)
         }
+    }
+    
+    /// The function deletes files from the iCloud container.
+    ///
+    /// Pass an array of file names to delete to the **fileNames** parameter.
+    public func deleteFilesFromICloud(
+        fileNames: [String],
+        completion: @escaping (Result<[String], Error>) -> Void
+    ) {
+        var deletedFiles = [String]()
+        
+        guard let container = containerUrl else {
+            completion(.failure(ICloudError.iCloudAccessDenied))
+            return
+        }
+        
+        for fileName in fileNames {
+            let fileUrl = container.appendingPathComponent(fileName)
+            do {
+                if FileManager.default.fileExists(atPath: fileUrl.path) {
+                    try FileManager.default.removeItem(at: fileUrl)
+                    deletedFiles.append(fileName)
+                } else {
+                    completion(.failure(ICloudError.fileNotFound))
+                    return
+                }
+            } catch {
+                completion(.failure(error))
+                return
+            }
+        }
+        
+        completion(.success(deletedFiles))
     }
     
     //internal functions
@@ -289,6 +325,28 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
+    
+    /// The function deletes files from the iCloud container.
+    ///
+    /// Pass an array of file names to delete to the **fileNames** parameter.
+    public func deleteFilesFromICloud(fileNames: [String]) async throws -> [String] {
+        return try await withCheckedThrowingContinuation { continuation in
+            deleteFilesFromICloud(fileNames: fileNames) { result in
+                continuation.resume(with: result)
+            }
+        }
+    }
+    
+    /// The function deletes files from the iCloud container.
+    ///
+    /// Pass an array of file names to delete to the **fileNames** parameter.
+    public func deleteFilesFromICloud(fileNames: [String]) async -> Result<[String], Error> {
+        return await withCheckedContinuation { continuation in
+            deleteFilesFromICloud(fileNames: fileNames) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
 }
 
 extension ICloudDocuments.ICloudError: LocalizedError {
@@ -298,6 +356,8 @@ extension ICloudDocuments.ICloudError: LocalizedError {
             NSLocalizedString("Access denied to iCloud. Please sign into your iCloud account in to iPhone. Check internet connection.", comment: "error description")
         case .noFilesInContainer:
             NSLocalizedString("No files in iCloud", comment: "error description")
+        case .fileNotFound:
+            NSLocalizedString("Specified file not found in iCloud", comment: "error description")
         }
     }
 }

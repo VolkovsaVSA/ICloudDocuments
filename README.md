@@ -138,6 +138,37 @@ If you use App groups therefore passed App groups name in second parameter.
     }
 ```
 
+5. For deleting files from iCloud use "deleteFilesFromICloud" function.
+
+```swift
+    // Using completion handler
+    icd.deleteFilesFromICloud(fileNames: ["file1.txt", "file2.txt"]) { result in
+        switch result {
+        case .success(let deletedFiles):
+            // Process deleted files
+        case .failure(let error):
+            print(error.localizedDescription)
+        }
+    }
+    
+    // Using async/await with throws
+    do {
+        let deletedFiles = try await icd.deleteFilesFromICloud(fileNames: ["file1.txt", "file2.txt"])
+        // Process deleted files
+    } catch {
+        print(error.localizedDescription)
+    }
+    
+    // Using async/await with Result
+    let deleteResult = await icd.deleteFilesFromICloud(fileNames: ["file1.txt", "file2.txt"])
+    switch deleteResult {
+    case .success(let deletedFiles):
+        // Process deleted files
+    case .failure(let error):
+        print(error.localizedDescription)
+    }
+```
+
 Note: Each method is available in three versions:
 1. With completion handler (traditional asynchronous approach)
 2. With async/await and throws (modern Swift approach)

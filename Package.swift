@@ -24,6 +24,9 @@ let package = Package(
         .target(
             name: "ICloudDocuments",
             dependencies: []),
+        .testTarget(
+            name: "ICloudDocumentsTests",
+            dependencies: ["ICloudDocuments"])
     ]
 )
 

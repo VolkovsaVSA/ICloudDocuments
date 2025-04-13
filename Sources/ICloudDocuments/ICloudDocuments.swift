@@ -57,12 +57,15 @@ public class ICloudDocuments: ObservableObject {
     /// **directoryCreationFailed** - failed to create directory in iCloud
     ///
     /// **fileDeletionFailed** - failed to delete file from iCloud
+    ///
+    /// **fileCopyFailed** - failed to copy file to iCloud
     public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
         case fileNotFound
         case directoryCreationFailed
         case fileDeletionFailed
+        case fileCopyFailed
     }
     
     //public functions
@@ -259,7 +262,7 @@ public class ICloudDocuments: ObservableObject {
                 try removeOldFile(path: urlFileName.path)
             } catch let removeError {
                 print(removeError, #function, #line)
-                throw removeError
+                throw ICloudError.fileDeletionFailed
             }
         }
         do {
@@ -267,9 +270,8 @@ public class ICloudDocuments: ObservableObject {
             print("file \"\(fileName)\" copy to \(urlFileName.path) is ok")
         } catch {
             print("error copy file '\(fileName)' to iCloud - " + error.localizedDescription)
-            throw error
+            throw ICloudError.fileCopyFailed
         }
-        
     }
     private func removeOldFile (path: String) throws {
         var isDir:ObjCBool = false
@@ -354,6 +356,8 @@ extension ICloudDocuments.ICloudError: LocalizedError {
             NSLocalizedString("Failed to create directory in iCloud", comment: "error description")
         case .fileDeletionFailed:
             NSLocalizedString("Failed to delete file from iCloud", comment: "error description")
+        case .fileCopyFailed:
+            NSLocalizedString("Failed to copy file to iCloud", comment: "error description")
         }
     }
 }

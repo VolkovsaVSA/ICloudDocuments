@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.0] - 2024-04-11
+## [1.2.0] - 2025-04-11
 
 ### Added
 - New method `deleteFilesFromICloud` for deleting files from iCloud

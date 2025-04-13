@@ -134,6 +134,10 @@ If you use App groups therefore passed App groups name in second parameter.
     }
 ```
 
+Note: Each method is available in two versions:
+1. With completion handler (traditional asynchronous approach)
+2. With async/await and throws (modern Swift approach)
+
 Error Handling
 =====================
 The framework provides several types of errors that can occur during operations:
@@ -146,10 +150,6 @@ The framework provides several types of errors that can occur during operations:
 
 All errors are localized and provide user-friendly descriptions.
 
-Note: Each method is available in three versions:
-1. With completion handler (traditional asynchronous approach)
-2. With async/await and throws (modern Swift approach)
-
 Enjoy
 =====================
 
@@ -157,17 +157,3 @@ Enjoy
 License
 =====================
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Обработка ошибок
-
-Все ошибки в библиотеке локализованы и представлены в виде перечисления `ICloudError`:
-
-- **iCloudAccessDenied** - нет доступа к iCloud
-- **noFilesInContainer** - нет файлов в контейнере
-- **fileNotFound** - указанный файл не найден в iCloud
-- **directoryCreationFailed** - ошибка создания директории в iCloud
-- **fileDeletionFailed** - ошибка удаления файла из iCloud
-
-Все ошибки имеют локализованные описания на языке устройства пользователя.
-
-## Примеры использования

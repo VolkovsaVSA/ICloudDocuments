@@ -55,11 +55,14 @@ public class ICloudDocuments: ObservableObject {
     /// **fileNotFound** - specified file not found in iCloud
     ///
     /// **directoryCreationFailed** - failed to create directory in iCloud
+    ///
+    /// **fileDeletionFailed** - failed to delete file from iCloud
     public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
         case fileNotFound
         case directoryCreationFailed
+        case fileDeletionFailed
     }
     
     //public functions
@@ -212,7 +215,8 @@ public class ICloudDocuments: ObservableObject {
                     return
                 }
             } catch {
-                completion(.failure(error))
+                print("Error deleting file \(fileName): \(error)")
+                completion(.failure(ICloudError.fileDeletionFailed))
                 return
             }
         }
@@ -348,6 +352,8 @@ extension ICloudDocuments.ICloudError: LocalizedError {
             NSLocalizedString("Specified file not found in iCloud", comment: "error description")
         case .directoryCreationFailed:
             NSLocalizedString("Failed to create directory in iCloud", comment: "error description")
+        case .fileDeletionFailed:
+            NSLocalizedString("Failed to delete file from iCloud", comment: "error description")
         }
     }
 }

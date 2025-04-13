@@ -46,6 +46,7 @@ If you use App groups therefore passed App groups name in second parameter.
 ```swift
     let icd = ICloudDocuments(iCloudFolder: .iCloudDocumentsFolder, groupName: "group.Name")
 ```
+
 2. For upload files to iCloud Documents use "saveFilesToICloudDocuments" function.
 
 ```swift
@@ -64,15 +65,6 @@ If you use App groups therefore passed App groups name in second parameter.
         let savedFiles = try await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path])
         // Process saved files
     } catch {
-        print(error.localizedDescription)
-    }
-    
-    // Using async/await with Result
-    let savedFilesResult = await icd.saveFilesToICloudDocuments(localFilePaths: [fileUrl1.path])
-    switch savedFilesResult {
-    case .success(let files):
-        // Process saved files
-    case .failure(let error):
         print(error.localizedDescription)
     }
 ```
@@ -94,15 +86,6 @@ If you use App groups therefore passed App groups name in second parameter.
         try await icd.downloadAllFilesFromIcloud(localFolder: documentDirectory)
         // Files downloaded successfully
     } catch {
-        print(error.localizedDescription)
-    }
-    
-    // Using async/await with Result
-    let downloadResult = await icd.downloadAllFilesFromIcloud(localFolder: documentDirectory)
-    switch downloadResult {
-    case .success:
-        // Files downloaded successfully
-    case .failure(let error):
         print(error.localizedDescription)
     }
 ```
@@ -127,15 +110,6 @@ If you use App groups therefore passed App groups name in second parameter.
     } catch {
         print(error.localizedDescription)
     }
-    
-    // Using async/await with Result
-    let filesResult = await icd.checkFilesInIcloud()
-    switch filesResult {
-    case .success(let files):
-        // Process files
-    case .failure(let error):
-        print(error.localizedDescription)
-    }
 ```
 
 5. For deleting files from iCloud use "deleteFilesFromICloud" function.
@@ -158,21 +132,24 @@ If you use App groups therefore passed App groups name in second parameter.
     } catch {
         print(error.localizedDescription)
     }
-    
-    // Using async/await with Result
-    let deleteResult = await icd.deleteFilesFromICloud(fileNames: ["file1.txt", "file2.txt"])
-    switch deleteResult {
-    case .success(let deletedFiles):
-        // Process deleted files
-    case .failure(let error):
-        print(error.localizedDescription)
-    }
 ```
 
-Note: Each method is available in three versions:
+Note: Each method is available in two versions:
 1. With completion handler (traditional asynchronous approach)
 2. With async/await and throws (modern Swift approach)
-3. With async/await and Result (alternative approach for more explicit error handling)
+
+Error Handling
+=====================
+The framework provides several types of errors that can occur during operations:
+
+- **iCloudAccessDenied**: No access to iCloud. This can happen if the user is not signed into iCloud or if the app doesn't have the necessary permissions.
+- **noFilesInContainer**: No files found in the specified iCloud container.
+- **fileNotFound**: The specified file was not found in iCloud.
+- **directoryCreationFailed**: Failed to create a directory in iCloud. This can happen due to permission issues or network problems.
+- **fileDeletionFailed**: Failed to delete a file from iCloud.
+- **fileCopyFailed**: Failed to copy a file to iCloud.
+
+All errors are localized and provide user-friendly descriptions.
 
 Enjoy
 =====================

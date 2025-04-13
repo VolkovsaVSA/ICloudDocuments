@@ -24,7 +24,10 @@ let package = Package(
         .target(
             name: "ICloudDocuments",
             dependencies: []),
+        .testTarget(
+            name: "ICloudDocumentsTests",
+            dependencies: ["ICloudDocuments"])
     ]
 )
 
-let version = "1.2.0"
+let version = "1.2.1"

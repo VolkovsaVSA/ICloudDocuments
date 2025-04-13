@@ -53,35 +53,41 @@ public class ICloudDocuments: ObservableObject {
     /// **noFilesInContainer** - no files
     ///
     /// **fileNotFound** - specified file not found in iCloud
+    ///
+    /// **directoryCreationFailed** - failed to create directory in iCloud
     public enum ICloudError: Error {
         case iCloudAccessDenied
         case noFilesInContainer
         case fileNotFound
+        case directoryCreationFailed
     }
     
     //public functions
     /// The function checks for the presence of files in the iCloud container. The closure returns a list of files.
     public func checkFilesInIcloud(completion: @escaping (Result<[String], Error>) -> Void) {
-        if let container = containerUrl {
-            if let containerFiles = try? fileManager.contentsOfDirectory(
-                at: container,
-                includingPropertiesForKeys: nil,
-                options: .skipsHiddenFiles
-            ) {
-                if containerFiles.isEmpty {
-                    completion(.failure(ICloudError.noFilesInContainer))
-                } else {
-                    var files = [String]()
-                    containerFiles.forEach { containerFileUrl in
-                        if let fileName = containerFileUrl.path.components(separatedBy: "/").last {
-                            files.append(fileName)
-                        }
-                    }
-                    completion(.success(files))
-                }
+        guard let container = containerUrl else {
+            completion(.failure(ICloudError.iCloudAccessDenied))
+            return
+        }
+        
+        if let containerFiles = try? fileManager.contentsOfDirectory(
+            at: container,
+            includingPropertiesForKeys: nil,
+            options: .skipsHiddenFiles
+        ) {
+            if containerFiles.isEmpty {
+                completion(.failure(ICloudError.noFilesInContainer))
             } else {
-                completion(.failure(ICloudError.iCloudAccessDenied))
+                var files = [String]()
+                containerFiles.forEach { containerFileUrl in
+                    if let fileName = containerFileUrl.path.components(separatedBy: "/").last {
+                        files.append(fileName)
+                    }
+                }
+                completion(.success(files))
             }
+        } else {
+            completion(.failure(ICloudError.iCloudAccessDenied))
         }
     }
     
@@ -93,31 +99,33 @@ public class ICloudDocuments: ObservableObject {
         completion: @escaping (Result<[String], Error>) -> Void
     ) {
         var files = [String]()
-        localFilePaths.forEach { filePath in
-            if let fileName = filePath.components(separatedBy: "/").last {
-                do {
-                    try copyFileToICloud(localPath: filePath, fileName: fileName)
-                } catch {
-                    completion(.failure(error))
-                    return
-                }
+        for filePath in localFilePaths {
+            guard let fileName = filePath.components(separatedBy: "/").last else { continue }
+            
+            do {
+                try copyFileToICloud(localPath: filePath, fileName: fileName)
                 files.append(fileName)
+            } catch {
+                completion(.failure(error))
+                return
             }
         }
-        if !files.isEmpty {
-            completion(.success(files))
-        }
         
+        completion(.success(files))
     }
     
     /// Files in the iCloud container may be in an undownloaded state, so before copying from the container, you must start downloading files to the container.
     private func startDownloadFiles(completion: @escaping(Error?) -> Void) {
-        if let container = containerUrl {
-            do {
-                try fileManager.startDownloadingUbiquitousItem(at: container)
-            } catch {
-                completion(error)
-            }
+        guard let container = containerUrl else {
+            completion(ICloudError.iCloudAccessDenied)
+            return
+        }
+        
+        do {
+            try fileManager.startDownloadingUbiquitousItem(at: container)
+            completion(nil)
+        } catch {
+            completion(error)
         }
     }
     
@@ -217,18 +225,18 @@ public class ICloudDocuments: ObservableObject {
         containerUrl?.appendingPathComponent(fileName)
     }
     private func createDirectoryInICloud() throws {
-        if let url = containerUrl {
-            if !fileManager.fileExists(atPath: url.path, isDirectory: nil) {
-                do {
-                    try fileManager
-                        .createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
-                } catch let directoryError {
-                    print(directoryError, #function, #line)
-                    throw directoryError
-                }
-            }
-        } else {
+        guard let url = containerUrl else {
             throw ICloudError.iCloudAccessDenied
+        }
+        
+        if !fileManager.fileExists(atPath: url.path, isDirectory: nil) {
+            do {
+                try fileManager
+                    .createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                print(error, #function, #line)
+                throw ICloudError.directoryCreationFailed
+            }
         }
     }
     private func copyFileToICloud(localPath: String, fileName: String) throws {
@@ -338,6 +346,8 @@ extension ICloudDocuments.ICloudError: LocalizedError {
             NSLocalizedString("No files in iCloud", comment: "error description")
         case .fileNotFound:
             NSLocalizedString("Specified file not found in iCloud", comment: "error description")
+        case .directoryCreationFailed:
+            NSLocalizedString("Failed to create directory in iCloud", comment: "error description")
         }
     }
 }

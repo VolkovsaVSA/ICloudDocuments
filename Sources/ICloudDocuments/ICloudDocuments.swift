@@ -9,25 +9,28 @@ public class ICloudDocuments: ObservableObject {
     /// **iCloudFolder** - Choose specific folder where be saved files. If you choose "iCloudDocumentsFolder" then files while be saved in visible folder "Documents". If you choose "mainHiddenFolder" then files while be saved in invisible folder "Backup".
     ///
     /// **groupName** - Specify the "groupName" parameter if you are using App Groups.
+    ///
+    /// **fileManager** - FileManager instance to use for file operations. Default is FileManager.default.
     public init(
         iCloudFolder: ICloudFolder = .iCloudDocumentsFolder,
-        groupName: String? = nil
+        groupName: String? = nil,
+        fileManager: FileManager = .default
     ) {
         self.groupName = groupName
         self.iCloudFolder = iCloudFolder
+        self.fileManager = fileManager
     }
     private let groupName: String?
     private let iCloudFolder: ICloudFolder
+    private let fileManager: FileManager
 
     private var containerUrl: URL? {
         if let groupNameUnwrap = groupName {
-            FileManager
-                .default
+            fileManager
                 .containerURL(forSecurityApplicationGroupIdentifier: groupNameUnwrap)?
                 .appendingPathComponent(iCloudFolder.rawValue)
         } else {
-            FileManager
-                .default
+            fileManager
                 .url(forUbiquityContainerIdentifier: nil)?
                 .appendingPathComponent(iCloudFolder.rawValue)
         }
@@ -60,7 +63,7 @@ public class ICloudDocuments: ObservableObject {
     /// The function checks for the presence of files in the iCloud container. The closure returns a list of files.
     public func checkFilesInIcloud(completion: @escaping (Result<[String], Error>) -> Void) {
         if let container = containerUrl {
-            if let containerFiles = try? FileManager().contentsOfDirectory(
+            if let containerFiles = try? fileManager.contentsOfDirectory(
                 at: container,
                 includingPropertiesForKeys: nil,
                 options: .skipsHiddenFiles
@@ -111,7 +114,7 @@ public class ICloudDocuments: ObservableObject {
     private func startDownloadFiles(completion: @escaping(Error?) -> Void) {
         if let container = containerUrl {
             do {
-                try FileManager.default.startDownloadingUbiquitousItem(at: container)
+                try fileManager.startDownloadingUbiquitousItem(at: container)
             } catch {
                 completion(error)
             }
@@ -122,48 +125,57 @@ public class ICloudDocuments: ObservableObject {
     ///
     /// In the **localFolder** parameter, pass the URL of the local folder to save files.
     public func downloadAllFilesFromIcloud(localFolder: URL, completion: @escaping (Error?) -> Void) {
-        if let container = containerUrl {
-            
-            startDownloadFiles { downloadError in
+        guard let container = containerUrl else {
+            completion(ICloudError.iCloudAccessDenied)
+            return
+        }
+        
+        startDownloadFiles { [self] downloadError in
+            guard downloadError == nil else {
                 completion(downloadError)
                 return
             }
             
-            if let containerFiles = try? FileManager().contentsOfDirectory(at: container, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) {
-                if containerFiles.isEmpty {
-                    completion(ICloudError.noFilesInContainer)
-                } else {
-                    containerFiles.forEach { containerFileUrl in
-                        if let fileName = containerFileUrl.path.components(separatedBy: "/").last {
-                            if FileManager.default.fileExists(atPath: localFolder.appendingPathComponent(fileName).path) {
-                                do {
-                                    try removeOldFile(path: localFolder.appendingPathComponent(fileName).path)
-                                } catch let removeError {
-                                    print(removeError, #function, #line)
-                                    completion(removeError)
-                                    return
-                                }
-                            }
-                            do {
-                                try FileManager.default.copyItem(
-                                    atPath: containerFileUrl.path,
-                                    toPath: localFolder.appendingPathComponent(fileName).path
-                                )
-                                print("copy file: \(fileName)")
-                            } catch {
-                                completion(error)
-                                return
-                            }
-                            
-                        }
-                        
+            guard let containerFiles = try? fileManager.contentsOfDirectory(at: container, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) else {
+                completion(ICloudError.iCloudAccessDenied)
+                return
+            }
+            
+            if containerFiles.isEmpty {
+                completion(ICloudError.noFilesInContainer)
+                return
+            }
+            
+            var errors: [Error] = []
+            for containerFileUrl in containerFiles {
+                guard let fileName = containerFileUrl.path.components(separatedBy: "/").last else { continue }
+                
+                if fileManager.fileExists(atPath: localFolder.appendingPathComponent(fileName).path) {
+                    do {
+                        try self.removeOldFile(path: localFolder.appendingPathComponent(fileName).path)
+                    } catch let removeError {
+                        print(removeError, #function, #line)
+                        errors.append(removeError)
+                        continue
                     }
-                    completion(nil)
+                }
+                do {
+                    try fileManager.copyItem(
+                        atPath: containerFileUrl.path,
+                        toPath: localFolder.appendingPathComponent(fileName).path
+                    )
+                    print("copy file: \(fileName)")
+                } catch {
+                    print("Error copying file \(fileName): \(error)")
+                    errors.append(error)
                 }
             }
             
-        } else {
-            completion(ICloudError.iCloudAccessDenied)
+            if !errors.isEmpty {
+                completion(errors.first)
+            } else {
+                completion(nil)
+            }
         }
     }
     
@@ -184,8 +196,8 @@ public class ICloudDocuments: ObservableObject {
         for fileName in fileNames {
             let fileUrl = container.appendingPathComponent(fileName)
             do {
-                if FileManager.default.fileExists(atPath: fileUrl.path) {
-                    try FileManager.default.removeItem(at: fileUrl)
+                if fileManager.fileExists(atPath: fileUrl.path) {
+                    try fileManager.removeItem(at: fileUrl)
                     deletedFiles.append(fileName)
                 } else {
                     completion(.failure(ICloudError.fileNotFound))
@@ -206,10 +218,9 @@ public class ICloudDocuments: ObservableObject {
     }
     private func createDirectoryInICloud() throws {
         if let url = containerUrl {
-            if !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
+            if !fileManager.fileExists(atPath: url.path, isDirectory: nil) {
                 do {
-                    try FileManager
-                        .default
+                    try fileManager
                         .createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
                 } catch let directoryError {
                     print(directoryError, #function, #line)
@@ -231,7 +242,7 @@ public class ICloudDocuments: ObservableObject {
             throw ICloudError.iCloudAccessDenied
         }
         
-        if FileManager.default.fileExists(atPath: localPath) {
+        if fileManager.fileExists(atPath: localPath) {
             do {
                 try removeOldFile(path: urlFileName.path)
             } catch let removeError {
@@ -240,7 +251,7 @@ public class ICloudDocuments: ObservableObject {
             }
         }
         do {
-            try FileManager.default.copyItem(atPath: localPath, toPath: urlFileName.path)
+            try fileManager.copyItem(atPath: localPath, toPath: urlFileName.path)
             print("file \"\(fileName)\" copy to \(urlFileName.path) is ok")
         } catch {
             print("error copy file '\(fileName)' to iCloud - " + error.localizedDescription)
@@ -250,9 +261,9 @@ public class ICloudDocuments: ObservableObject {
     }
     private func removeOldFile (path: String) throws {
         var isDir:ObjCBool = false
-        if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+        if fileManager.fileExists(atPath: path, isDirectory: &isDir) {
             do {
-                try FileManager.default.removeItem(atPath: path)
+                try fileManager.removeItem(atPath: path)
             } catch {
                throw error
             }
@@ -261,11 +272,16 @@ public class ICloudDocuments: ObservableObject {
 
     // MARK: - Async Methods
     
-    /// The function checks for the presence of files in the iCloud container. Returns Result with a list of files or error.
-    public func checkFilesInIcloud() async -> Result<[String], Error> {
-        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<[String], Error>, Never>) in
+    /// The function checks for the presence of files in the iCloud container. Returns a list of files or throws an error.
+    public func checkFilesInIcloud() async throws -> [String] {
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[String], Error>) in
             checkFilesInIcloud { result in
-                continuation.resume(returning: result)
+                switch result {
+                case .success(let files):
+                    continuation.resume(returning: files)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
@@ -280,17 +296,6 @@ public class ICloudDocuments: ObservableObject {
                 case .success(let files): continuation.resume(returning: files)
                 case .failure(let error): continuation.resume(throwing: error)
                 }
-            }
-        }
-    }
-    
-    /// The function saves files in the iCloud container. Returns Result with a list of saved files or error.
-    ///
-    /// Pass an array of file paths to save to the **localFilePaths** parameter.
-    public func saveFilesToICloudDocuments(localFilePaths: [String]) async -> Result<[String], Error> {
-        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<[String], Error>, Never>) in
-            saveFilesToICloudDocuments(localFilePaths: localFilePaths) { result in
-                continuation.resume(returning: result)
             }
         }
     }
@@ -310,21 +315,6 @@ public class ICloudDocuments: ObservableObject {
         }
     }
     
-    /// Copying files from the iCloud container to a local folder on the device.
-    /// Returns Result with void or error.
-    ///
-    /// In the **localFolder** parameter, pass the URL of the local folder to save files.
-    public func downloadAllFilesFromIcloud(localFolder: URL) async -> Result<Void, Error> {
-        return await withCheckedContinuation { (continuation: CheckedContinuation<Result<Void, Error>, Never>) in
-            downloadAllFilesFromIcloud(localFolder: localFolder) { error in
-                if let error {
-                    continuation.resume(returning: .failure(error))
-                } else {
-                    continuation.resume(returning: .success(()))
-                }
-            }
-        }
-    }
     
     /// The function deletes files from the iCloud container.
     ///
@@ -336,17 +326,7 @@ public class ICloudDocuments: ObservableObject {
             }
         }
     }
-    
-    /// The function deletes files from the iCloud container.
-    ///
-    /// Pass an array of file names to delete to the **fileNames** parameter.
-    public func deleteFilesFromICloud(fileNames: [String]) async -> Result<[String], Error> {
-        return await withCheckedContinuation { continuation in
-            deleteFilesFromICloud(fileNames: fileNames) { result in
-                continuation.resume(returning: result)
-            }
-        }
-    }
+
 }
 
 extension ICloudDocuments.ICloudError: LocalizedError {

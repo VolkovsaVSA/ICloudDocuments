@@ -147,6 +147,7 @@ The framework provides several types of errors that can occur during operations:
 - **fileNotFound**: The specified file was not found in iCloud.
 - **directoryCreationFailed**: Failed to create a directory in iCloud. This can happen due to permission issues or network problems.
 - **fileDeletionFailed**: Failed to delete a file from iCloud.
+- **fileCopyFailed**: Failed to copy a file to iCloud.
 
 All errors are localized and provide user-friendly descriptions.
 
